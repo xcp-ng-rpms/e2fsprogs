@@ -5,7 +5,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
 Version: 1.47.0
-Release: %{?xsrel}%{?dist}
+Release: %{?xsrel}.1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -187,11 +187,21 @@ chmod +w %{buildroot}%{_libdir}/*.a
 %check
 make PRINT_FAILED=yes fullcheck
 
-%ldconfig_scriptlets libs
+# XCP-ng: in 8.2, replace the use of %%ldconfig_scriptlets
+# (which is provided by epel-rpm-macros, not used to build anything
+# currently in 8.2) by what it would evaluate to.
 
-%ldconfig_scriptlets -n libcom_err
+#%%ldconfig_scriptlets libs
+%post -p /sbin/ldconfig libs
+%postun -p /sbin/ldconfig libs
 
-%ldconfig_scriptlets -n libss
+#%%ldconfig_scriptlets -n libcom_err
+%post -p /sbin/ldconfig -n libcom_err
+%postun -p /sbin/ldconfig -n libcom_err
+
+#%%ldconfig_scriptlets -n libss
+%post -p /sbin/ldconfig -n libss
+%postun -p /sbin/ldconfig -n libss
 
 %files -f %{name}.lang
 %doc README
@@ -327,6 +337,10 @@ make PRINT_FAILED=yes fullcheck
 %{_udevdir}/96-e2scrub.rules
 
 %changelog
+* Fri Oct 13 2023 Samuel Verschelde <stormi-xcp@ylix.fr> - 1.47.0-1.1
+- Replace %%ldconfig_scriptlets with what it would evaluate to
+- This macro would require epel-rpm-macros, which is not available in XCP-ng 8.2
+
 * Mon Oct 02 2023 Tim Smith <tim.smith@citrix.com> - 1.47.0-1
 - Update to 1.47.0 (Fixes CVE-2022-1304)
 
